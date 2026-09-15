@@ -1,81 +1,27 @@
 <?php
 defined('MOODLE_INTERNAL') || die();
 
-class block_eva_course_grid_edit_form extends block_edit_form
-{
-    protected function specific_definition($mform)
-    {
-        global $CFG;
-        $mform->addElement('header', 'configheader', get_string('blocksettings', 'block'));
-        // Title
-        $mform->addElement('text', 'config_title', get_string('config_title', 'theme_evagu'));
-        $mform->setDefault('config_title', 'Nossos melhores cursos');
-        $mform->setType('config_title', PARAM_RAW);
-        // Subtitle
-        $mform->addElement('text', 'config_subtitle', get_string('config_subtitle', 'theme_evagu'));
-        $mform->setDefault('config_subtitle', 'Texto modelo para ser alterado pelo gestor de conteudo e gerentes da plataforma EAD EVA 2025 utilizar texto curto.');
-        $mform->setType('config_subtitle', PARAM_RAW);
-        // Button Text
-        $mform->addElement('text', 'config_button_text', get_string('config_button_text', 'theme_evagu'));
-        $mform->setDefault('config_button_text', 'View all courses');
-        $mform->setType('config_button_text', PARAM_RAW);
-        // Button Link
-        $mform->addElement('text', 'config_button_link', get_string('config_button_link', 'theme_evagu'));
-        $mform->setDefault('config_button_link', $CFG->wwwroot . '/course');
-        $mform->setType('config_button_link', PARAM_RAW);
-        // Hover text
-        $mform->addElement('text', 'config_hover_text', get_string('config_hover_text', 'block_eva_course_grid'));
-        $mform->setDefault('config_hover_text', 'Preview Course');
-        $mform->setType('config_hover_text', PARAM_RAW);
-        // Hover accent
-        $mform->addElement('text', 'config_hover_accent', get_string('config_hover_accent', 'block_eva_course_grid'));
-        $mform->setDefault('config_hover_accent', 'Top Seller');
-        $mform->setType('config_hover_accent', PARAM_RAW);
-        $options = array(
-            '0' => 'Hidden',
-            '1' => 'Visible',
+class block_eva_custom_exhibition_edit_form extends block_edit_form {
+
+    protected function specific_definition($mform) {
+        
+        // Cabeçalho de configurações do bloco
+        $mform->addElement('header', 'config_header', get_string('blocksettings', 'block'));
+
+        // Campo para alterar os nomes das categorias presentes na barra de navegação
+        $mform->addElement(
+            'textarea', 
+            'config_nav_categories', 
+            get_string('nav_categories', 'block_eva_custom_exhibition'), 
+            'wrap="virtual" rows="6" cols="50"'
         );
-        $select = $mform->addElement('select', 'config_course_image', get_string('config_image', 'theme_evagu'), $options);
-        $select->setSelected('1');
-        $options = array(
-            '0' => 'Hidden',
-            '1' => 'Visible',
-            '2' => 'Visible (max 50 characters)',
-            '3' => 'Visible (max 100 characters)',
-            '4' => 'Visible (max 150 characters)',
-            '5' => 'Visible (max 200 characters)',
-            '6' => 'Visible (max 350 characters)',
-            '7' => 'Visible (max 500 characters)',
-        );
-        $select = $mform->addElement('select', 'config_description', get_string('config_description', 'theme_evagu'), $options);
-        $select->setSelected('0');
-        $options = array(
-            '0' => 'Hidden',
-            '1' => 'Visible',
-        );
-        $select = $mform->addElement('select', 'config_price', get_string('config_price', 'theme_evagu'), $options);
-        $select->setSelected('1');
-        $options = array(
-            '0' => 'Hidden',
-            '1' => 'Visible',
-        );
-        $select = $mform->addElement('select', 'config_enrol_btn', get_string('config_enrol_btn', 'theme_evagu'), $options);
-        $select->setSelected('0');
-        $mform->addElement('text', 'config_enrol_btn_text', get_string('config_enrol_btn_text', 'theme_evagu'));
-        $mform->setDefault('config_enrol_btn_text', 'Inscrição');
-        $mform->setType('config_enrol_btn_text', PARAM_RAW);
-        // $mform->addElement('html', '<a class="btn btn-secondary mt20 mb30 " href="'.$CFG->wwwroot.'/blocks/eva_course_grid/eva_course_grid.php">Select Featured Courses</a>');
-        $options = array(
-            'multiple' => true,
-            'noselectionstring' => get_string('select_from_dropdown_multiple', 'theme_evagu'),
-        );
-        $mform->addElement('course', 'config_courses', get_string('courses'), $options);
-        $options = array(
-            '0' => 'No',
-            '1' => 'Yes',
-        );
-        $select = $mform->addElement('select', 'config_group', get_string('config_group_courses_filter', 'theme_evagu'), $options);
-        $select->setSelected('1');
-        include ($CFG->dirroot . '/theme/evagu/ccn/block_handler/edit.php');
+        $mform->setDefault('config_nav_categories', "Todos\nCursos e Eventos Inativos\nCursos\nLicitações e Contratos\nTurma I\nSuper Sapiens\nEstágio");
+        $mform->setType('config_nav_categories', PARAM_TEXT);
+        $mform->addHelpButton('config_nav_categories', 'nav_categories', 'block_eva_custom_exhibition');
+
+        // Campo para controlar o limite de cursos exibidos no grid
+        $mform->addElement('text', 'config_course_limit', 'Limite de Cursos Exibidos');
+        $mform->setDefault('config_course_limit', 8);
+        $mform->setType('config_course_limit', PARAM_INT);
     }
 }
