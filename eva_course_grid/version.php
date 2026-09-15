@@ -22,7 +22,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 defined('MOODLE_INTERNAL') || die();
-$plugin->component = 'block_eva_course_grid';  // Full name of the plugin (used for diagnostics).
-$plugin->version = 202506261210;  // The current plugin version (Date: YYYYMMDDXX).
-$plugin->requires = 2021051718;
-$plugin->incompatible = 400;
+
+$plugin->component = 'block_eva_custom_exhibition';
+$plugin->version = 2026091501;
+$plugin->requires = 2022112800; // Moodle 4.1+
+$plugin->maturity = MATURITY_STABLE;
+$plugin->release = 'v1.2.0';
