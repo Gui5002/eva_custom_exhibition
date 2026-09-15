@@ -1,362 +1,210 @@
 <?php
+// Impede o acesso direto ao arquivo
 defined('MOODLE_INTERNAL') || die();
-require_once ($CFG->dirroot . '/course/renderer.php');
-require_once ($CFG->dirroot . '/theme/evagu/ccn/course_handler/ccn_course_handler.php');
-require_once ($CFG->dirroot . '/theme/evagu/ccn/block_handler/ccn_block_handler.php');
 
-class block_eva_course_grid extends block_base
-{
-  public function init()
-  {
-    $this->title = get_string('pluginname', 'block_eva_course_grid');
-  }
+class block_eva_course_grid extends block_base {
 
-  public function specialization()
-  {
-    global $CFG, $DB;
-    $ccnCourseHandler = new ccnCourseHandler();
-    $ccnCourses = $ccnCourseHandler->ccnGetExampleCoursesIds(8);
-    include ($CFG->dirroot . '/theme/evagu/ccn/block_handler/specialization.php');
-    if (empty($this->config)) {
-      $this->config = new \stdClass();
-      $this->config->title = 'Nossos melhores cursos';
-      $this->config->subtitle = 'Cum doctus civibus efficiantur in imperdiet deterruisTexto complementar do titulo de forma reduzida modelo.';
-      $this->config->hover_text = 'Prévia do Curso';
-      $this->config->hover_accent = 'Mais Vistos';
-      $this->config->button_text = 'Ver todos os Cursos';
-      $this->config->button_link = $CFG->wwwroot . '/course';
-      $this->config->course_image = '1';
-      $this->config->description = '0';
-      $this->config->price = '1';
-      $this->config->enrol_btn = '0';
-      $this->config->enrol_btn_text = 'Inscrição';
-      $this->config->courses = $ccnCourses;
-      $this->config->group = '1';
-      // $this->config->color_bg = 'rgb(47 81 112)';
-      // $this->config->color_title = 'rgb(255,255,255)';
-      // $this->config->color_subtitle = 'rgb(255,255,255)';
-      // $this->config->color_course_title = 'rgb(255,255,255)';
-      // $this->config->color_course_subtitle = 'rgb(255, 234, 193)';
-      // $this->config->color_course_price = 'rgb(255, 0, 95)';
-      // $this->config->color_button = 'rgb(255, 0, 95)';
-      // $this->config->color_course_enrol_btn = '#79b530';
+    public function init() {
+        $this->title = get_string('pluginname', 'block_eva_course_grid');
     }
-  }
 
-  public function get_content()
-  {
-    global $CFG, $DB, $COURSE, $USER, $PAGE;
-    if ($this->content !== null) {
-      return $this->content;
-    }
-    if (empty($this->instance)) {
-      $this->content = '';
-      return $this->content;
-    }
-    $this->content = new stdClass();
-    $this->content->items = array();
-    $this->content->icons = array();
-    $this->content->footer = '';
-    $this->content->text = '';
-    if (!empty($this->config->title)) {
-      $this->content->title = $this->config->title;
-    } else {
-      $this->content->title = '';
-    }
-    if (!empty($this->config->subtitle)) {
-      $this->content->subtitle = $this->config->subtitle;
-    } else {
-      $this->content->subtitle = '';
-    }
-    if (!empty($this->config->button_text)) {
-      $this->content->button_text = $this->config->button_text;
-    } else {
-      $this->content->button_text = '';
-    }
-    if (!empty($this->config->button_link)) {
-      $this->content->button_link = $this->config->button_link;
-    } else {
-      $this->content->button_link = '';
-    }
-    if (!empty($this->config->hover_text)) {
-      $this->content->hover_text = $this->config->hover_text;
-    } else {
-      $this->content->hover_text = '';
-    }
-    if (!empty($this->config->hover_accent)) {
-      $this->content->hover_accent = $this->config->hover_accent;
-    } else {
-      $this->content->hover_accent = '';
-    }
-    if (!empty($this->config->description)) {
-      $this->content->description = $this->config->description;
-    } else {
-      $this->content->description = '0';
-    }
-    if (!empty($this->config->course_image)) {
-      $this->content->course_image = $this->config->course_image;
-    } else {
-      $this->content->course_image = '';
-    }
-    if (!empty($this->config->price)) {
-      $this->content->price = $this->config->price;
-    } else {
-      $this->content->price = '0';
-    }
-    if (!empty($this->config->enrol_btn)) {
-      $this->content->enrol_btn = $this->config->enrol_btn;
-    } else {
-      $this->content->enrol_btn = '0';
-    }
-    if (!empty($this->config->enrol_btn_text)) {
-      $this->content->enrol_btn_text = $this->config->enrol_btn_text;
-    } else {
-      $this->content->enrol_btn_text = '';
-    }
-    if (
-      isset($this->content->description) &&
-      $this->content->description != '0'
-    ) {
-      $ccnBlockShowDesc = 1;
-    } else {
-      $ccnBlockShowDesc = 0;
-    }
-    if (
-      isset($this->content->course_image) &&
-      $this->content->course_image == '1'
-    ) {
-      $ccnBlockShowImg = 1;
-    } else {
-      $ccnBlockShowImg = 0;
-    }
-    if (
-      isset($this->content->enrol_btn) &&
-      isset($this->content->enrol_btn_text) &&
-      $this->content->enrol_btn == '1'
-    ) {
-      $ccnBlockShowEnrolBtn = 1;
-    } else {
-      $ccnBlockShowEnrolBtn = 0;
-    }
-    if (
-      isset($this->content->price) &&
-      $this->content->price == '1'
-    ) {
-      $ccnBlockShowPrice = 1;
-    } else {
-      $ccnBlockShowPrice = 0;
-    }
-    if (
-      $PAGE->theme->settings->coursecat_enrolments != 1 ||
-      $PAGE->theme->settings->coursecat_announcements != 1 ||
-      (isset($this->content->price) && $this->content->price == '1') ||
-      (isset($this->content->enrol_btn_text) && $this->content->enrol_btn == '1')
-    ) {
-      $ccnBlockShowBottomBar = 1;
-      $topCoursesClass = 'ccnWithFoot';
-    } else {
-      $ccnBlockShowBottomBar = 0;
-      $topCoursesClass = '';
-    }
-    if (!empty($this->config->group)) {
-      $filter = $this->config->group;
-      $ccnClassMasonry_cont = 'ccn-masonry-grid-1';
-      $ccnClassMasonry_opts = 'ccn-masonry-options';
-      $ccnClassMasonry_grid = 'ccn-masonry-grid';
-    } else {
-      $filter = null;
-      $ccnClassMasonry_cont = '';
-      $ccnClassMasonry_opts = '';
-      $ccnClassMasonry_grid = '';
-    }
-    if (!empty($this->config->courses)) {
-      $coursesArr = $this->config->courses;
-      $courses = new stdClass();
-      foreach ($coursesArr as $key => $course) {
-        $courseObj = new stdClass();
-        $courseObj->id = $course;
-        $courseRecord = $DB->get_record('course', array('id' => $courseObj->id), 'category');
-        $courseCategory = $DB->get_record('course_categories', array('id' => $courseRecord->category));
-        $courseCategory = core_course_category::get($courseCategory->id);
-        $courseObj->category = $courseCategory->id;
-        $courseObj->category_name = $courseCategory->get_formatted_name();
-        $courses->$course = $courseObj;
-      }
-      $categories = array();
-      foreach ($courses as $key => $course) {
-        $categories[$course->category] = $course->category_name;
-      }
-      $categories = array_unique($categories);
-    }
-    $this->content->text .= '
-        <section id="our-top-courses" class="' . $ccnClassMasonry_cont . ' our-courses ccn-courses-grid-block ccn-courses-grid-block-1">
-          <div class="container">
-            <div class="row">
-              <div class="col-lg-10 offset-lg-1 text-center">
-                <div class="main-title text-center">';
-    if (!empty($this->content->title)) {
-      $this->content->text .= '<h1 class="mt0" data-ccn="title">' . format_text($this->content->title, FORMAT_HTML, array('filter' => true)) . '</h1>';
-    }
-    if (!empty($this->content->subtitle)) {
-      $this->content->text .= ' <p data-ccn="subtitle">' . format_text($this->content->subtitle, FORMAT_HTML, array('filter' => true)) . '</p>';
-    }
-    $this->content->text .= '</div>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">';
-    if ($filter == 1) {
-      $this->content->text .= '
-                <div id="options" class="alpha-pag full ' . $ccnClassMasonry_opts . '">
-                  <div class="option-isotop">
-                    <ul id="filter" class="option-set" data-option-key="filter">
-                      <li class="list-inline-item"><a href="#all" data-option-value="*" class="selected">' . get_string('all') . '</a></li>';
-      foreach ($categories as $key => $category) {
-        $key = 'cat-' . $key;
-        $this->content->text .= '<li class="list-inline-item"><a href="#' . $key . '" data-option-value=".' . $key . '">' . $category . '</a></li>';
-      }
-      $this->content->text .= '
-                    </ul>
-                  </div>
-                </div><!-- /#options -->
-                <div class="emply-text-sec">';
-    }
-    $this->content->text .= '
-                  <div class="row ' . $ccnClassMasonry_grid . ' id="' . $coursesContainerClass . '">';
-    // $courses = self::get_featured_courses();
-    // print_object($courses);
-    // $courses = null;
-    if (!empty($this->config->courses)) {
-      $chelper = new coursecat_helper();
-      $total_courses = count($coursesArr);
-      if ($total_courses < 2) {
-        $col_class = 'col-md-12';
-      } else if ($total_courses == 2) {
-        $col_class = 'col-md-6';
-      } else if ($total_courses == 3) {
-        $col_class = 'col-md-4';
-      } else {
-        $col_class = 'col-md-6 col-lg-4 col-xl-3';
-      }
-      foreach ($courses as $course) {
-        if ($DB->record_exists('course', array('id' => $course->id))) {
-          $ccnCourseHandler = new ccnCourseHandler();
-          $ccnCourse = $ccnCourseHandler->ccnGetCourseDetails($course->id);
-          if (!empty($this->content->description) && $this->content->description == '7') {
-            $maxlength = 500;
-          } elseif (!empty($this->content->description) && $this->content->description == '6') {
-            $maxlength = 350;
-          } elseif (!empty($this->content->description) && $this->content->description == '5') {
-            $maxlength = 200;
-          } elseif (!empty($this->content->description) && $this->content->description == '4') {
-            $maxlength = 150;
-          } elseif (!empty($this->content->description) && $this->content->description == '3') {
-            $maxlength = 100;
-          } elseif (!empty($this->content->description) && $this->content->description == '2') {
-            $maxlength = 50;
-          } else {
-            $maxlength = null;
-          }
-          $ccnCourseDescription = $ccnCourseHandler->ccnGetCourseDescription($course->id, $maxlength);
-          $this->content->text .= '
-            <div class="' . $col_class . ' cat-' . $course->category . "\">
-\t\t\t\t\t\t\t<div class=\"top_courses " . $topCoursesClass . '">';
-          if ($ccnBlockShowImg) {
-            $this->content->text .= '
-                  <a href="' . $ccnCourse->url . "\"><div class=\"thumb\">
-\t\t\t\t\t\t\t\t\t" . $ccnCourse->ccnRender->coverImage . "
-\t\t\t\t\t\t\t\t\t<div class=\"overlay\">";
-            if ($this->content->hover_accent) {
-              $this->content->text .= ' <div class="tag" data-ccn="hover_accent">' . format_text($this->content->hover_accent, FORMAT_HTML, array('filter' => true)) . '</div>';
-            }
-            if ($this->content->hover_text) {
-              $this->content->text .= '<span class="tc_preview_course" data-ccn="hover_text">' . format_text($this->content->hover_text, FORMAT_HTML, array('filter' => true)) . '</span>';
-            }
-            $this->content->text .= "
-\t\t\t\t\t\t\t\t\t</div>
-\t\t\t\t\t\t\t\t</div></a>";
-          }
-          $this->content->text .= "
-\t\t\t\t\t\t\t\t<div class=\"details\">
-\t\t\t\t\t\t\t\t\t<div class=\"tc_content\">";
-          $this->content->text .= $ccnCourse->ccnRender->updatedDate;
-          $this->content->text .= $ccnCourse->ccnRender->title;
-          if ($ccnBlockShowDesc) {
-            $this->content->text .= '<p>' . $ccnCourseDescription . '</p>';
-          }
-          $this->content->text .= $ccnCourse->ccnRender->starRating;
-          $this->content->text .= "
-\t\t\t\t\t\t\t\t\t</div>
-                  </div>";
-          if ($ccnBlockShowBottomBar == 1) {
-            $this->content->text .= "
-                  <div class=\"tc_footer\">
-\t\t\t\t\t\t\t\t\t<ul class=\"tc_meta float-left\">" . $ccnCourse->ccnRender->enrolmentIcon . $ccnCourse->ccnRender->announcementsIcon . '</ul>';
-            if ($ccnBlockShowEnrolBtn) {
-              $this->content->text .= '<a href="' . $ccnCourse->enrolmentLink . '" class="tc_enrol_btn float-right" data-ccn="enrol_btn_text">' . format_text($this->content->enrol_btn_text, FORMAT_HTML, array('filter' => true)) . '</a>';
-            }
-            if ($ccnBlockShowPrice) {
-              $this->content->text .= '<div class="tc_price float-right">' . $ccnCourse->price . '</div>';
-            }
-            $this->content->text .= "
-\t\t\t\t\t\t\t\t\t</div>";
-          }
-          $this->content->text .= "
-\t\t\t\t\t\t\t</div>
-\t\t\t\t\t\t</div>";
+    public function get_content() {
+        if ($this->content !== null) {
+            return $this->content;
         }
-      }
+
+        global $DB, $CFG, $OUTPUT;
+
+        $this->content = new stdClass();
+        $this->content->text = '';
+        $this->content->footer = '';
+
+        // Resgata os textos configurados no formulário ou define os valores padrão
+        $main_title = !empty($this->config->main_title) ? $this->config->main_title : 'Nossos melhores cursos';
+        $subtitle = !empty($this->config->subtitle) ? $this->config->subtitle : 'Texto complementar do titulo de forma reduzida modelo.';
+        
+        // Resgata a configuração manual de abas/cursos
+        $config_abas = !empty($this->config->custom_tabs) ? $this->config->custom_tabs : '';
+
+        $abas_manuais = [];
+        $todos_cursos_ids = [];
+
+        // 1. PROCESSAMENTO DAS REGRAS (Texto para Array)
+        if (!empty($config_abas)) {
+            $linhas = explode("\n", $config_abas);
+            foreach ($linhas as $index => $linha) {
+                $linha = trim($linha);
+                if (empty($linha)) continue;
+
+                $partes = explode('|', $linha);
+                if (count($partes) == 2) {
+                    $nome_aba = trim($partes[0]);
+                    $ids_string = trim($partes[1]);
+                    
+                    // Limpa espaços e pega apenas os IDs numéricos
+                    $ids_cursos = array_filter(array_map('trim', explode(',', $ids_string)));
+
+                    if (!empty($ids_cursos)) {
+                        // Cria uma classe CSS única para a aba (slug)
+                        $slug_aba = 'eva-cat-' . md5($nome_aba . $index); 
+                        
+                        $abas_manuais[$slug_aba] = [
+                            'nome' => $nome_aba,
+                            'cursos' => $ids_cursos
+                        ];
+                        
+                        // Junta todos os IDs para a query do banco
+                        $todos_cursos_ids = array_merge($todos_cursos_ids, $ids_cursos);
+                    }
+                }
+            }
+        }
+
+        $todos_cursos_ids = array_unique($todos_cursos_ids);
+
+        // 2. BUSCA DOS CURSOS NO BANCO DE DADOS
+        $courses = [];
+        if (!empty($todos_cursos_ids)) {
+            // Retorna a string SQL (ex: ?,?,?) e os parâmetros
+            list($in_sql, $params) = $DB->get_in_or_equal($todos_cursos_ids);
+            
+            $sql = "SELECT id, fullname, shortname, summary 
+                    FROM {course} 
+                    WHERE id $in_sql AND visible = 1";
+            
+            $courses = $DB->get_records_sql($sql, $params);
+        }
+
+        // ====================================================================
+        // 3. RENDERIZAÇÃO DO HTML E MANUTENÇÃO DO DESIGN
+        // ====================================================================
+        
+        $html = '<div class="eva-course-grid-module" style="text-align: center; margin-bottom: 2rem;">';
+        
+        // Cabeçalho
+        $html .= '<h2 class="eva-main-title">' . s($main_title) . '</h2>';
+        $html .= '<p class="eva-subtitle text-muted">' . s($subtitle) . '</p>';
+
+        if (!empty($abas_manuais) && !empty($courses)) {
+            
+            // Renderiza o menu de Abas (Barra de Navegação)
+            $html .= '<div class="eva-tabs-container" style="margin-bottom: 1.5rem;">';
+            $html .= '<ul class="nav justify-content-center eva-custom-tabs" style="border-bottom: 2px solid #e0e0e0; display: inline-flex; padding-bottom: 5px;">';
+            
+            $is_first = true;
+            foreach ($abas_manuais as $slug => $aba) {
+                // A primeira aba começa ativa
+                $active_class = $is_first ? 'active' : '';
+                $html .= '<li class="nav-item" style="margin: 0 15px;">';
+                $html .= '<a class="nav-link eva-tab-btn ' . $active_class . '" data-target="' . $slug . '" style="cursor: pointer; color: #666; padding: 5px 10px;">' . s($aba['nome']) . '</a>';
+                $html .= '</li>';
+                $is_first = false;
+            }
+            $html .= '</ul>';
+            $html .= '</div>';
+
+            // Renderiza a Grade de Cursos
+            $html .= '<div class="row eva-courses-grid text-left" style="text-align: left;">';
+
+            foreach ($courses as $curso) {
+                // Descobre a quais abas este curso pertence para adicionar como classe CSS
+                $classes_do_curso = [];
+                foreach ($abas_manuais as $slug => $aba) {
+                    if (in_array($curso->id, $aba['cursos'])) {
+                        $classes_do_curso[] = $slug;
+                    }
+                }
+                $string_classes = implode(' ', $classes_do_curso);
+
+                // Imagem de capa do curso (Lógica nativa do Moodle)
+                $course_context = context_course::instance($curso->id);
+                $course_image = $OUTPUT->pix_url('u/f1')->out(); // Fallback genérico
+                // Se você tiver uma função específica no seu tema para pegar a capa do curso, substitua aqui.
+
+                // ==============================================================================
+                // IMPORTANTE: Mantenha as classes internas abaixo iguais ao seu design original
+                // Apenas adicionei as variáveis dinâmicas e a `$string_classes` no container.
+                // ==============================================================================
+                $html .= '<div class="col-md-3 mb-4 eva-course-card ' . $string_classes . '">';
+                $html .= '  <div class="card h-100 shadow-sm border-0">';
+                // Container da imagem (Ajuste as classes HTML conforme a sua estrutura real)
+                $html .= '    <div class="card-img-top" style="height: 160px; background-color: #315b7d; background-image: url('.$course_image.'); background-size: cover; background-position: center;"></div>';
+                $html .= '    <div class="card-body">';
+                $html .= '      <h5 class="card-title" style="color: #0056b3; font-size: 1.1rem; font-weight: 500;">' . s($curso->fullname) . '</h5>';
+                $html .= '    </div>';
+                $html .= '    <div class="card-footer bg-white border-top-0 text-muted" style="font-size: 0.9rem;">';
+                // Placeholder para os ícones de alunos e comentários que existem na sua imagem
+                $html .= '      <i class="fa fa-user"></i> 0 &nbsp;&nbsp; <i class="fa fa-comments"></i> 0';
+                $html .= '    </div>';
+                $html .= '  </div>';
+                $html .= '</div>';
+            }
+
+            $html .= '</div>'; // Fim row
+
+        } else {
+            // Mensagem caso não tenha nada configurado
+            $html .= '<div class="alert alert-info">Nenhum curso configurado ou encontrado. Configure as abas nas configurações do bloco.</div>';
+        }
+
+        // Botão Footer "Ver todos os Cursos"
+        $html .= '<div class="eva-footer-action mt-4">';
+        $html .= '  <a href="' . $CFG->wwwroot . '/course/" class="btn btn-outline-secondary" style="border-radius: 25px; padding: 5px 25px;">Ver todos os Cursos</a>';
+        $html .= '</div>';
+
+        $html .= '</div>'; // Fim do modulo
+
+        // ====================================================================
+        // 4. JAVASCRIPT PARA FILTRAGEM (Visualização Dinâmica)
+        // ====================================================================
+        // Este JS oculta/exibe os cards baseado na aba clicada
+        
+        $html .= "
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var abas = document.querySelectorAll('.eva-tab-btn');
+                var cards = document.querySelectorAll('.eva-course-card');
+
+                abas.forEach(function(aba) {
+                    aba.addEventListener('click', function() {
+                        // Remove o estilo ativo de todas as abas
+                        abas.forEach(function(btn) {
+                            btn.classList.remove('active');
+                            // Reseta o estilo visual (ajuste de acordo com o seu CSS)
+                            btn.style.color = '#666';
+                            btn.style.fontWeight = 'normal';
+                            btn.style.borderBottom = 'none';
+                        });
+
+                        // Adiciona estilo ativo na aba clicada
+                        this.classList.add('active');
+                        this.style.color = '#315b7d'; // Azul do layout
+                        this.style.fontWeight = 'bold';
+                        this.style.borderBottom = '2px solid #e0e0e0'; 
+
+                        var targetSlug = this.getAttribute('data-target');
+
+                        // Mostra ou oculta os cards baseados na classe alvo
+                        cards.forEach(function(card) {
+                            if (card.classList.contains(targetSlug)) {
+                                card.style.display = 'block';
+                            } else {
+                                card.style.display = 'none';
+                            }
+                        });
+                    });
+                });
+
+                // Simula um clique na primeira aba para carregar o filtro inicial
+                if (abas.length > 0) {
+                    abas[0].click();
+                }
+            });
+        </script>
+        ";
+
+        $this->content->text = $html;
+
+        return $this->content;
     }
-    $this->content->text .= "
- \t\t\t</div>";
-    if ($filter == 1) {
-      $this->content->text .= '
-</div>';
-    }
-    $this->content->text .= '
-        </div></div>';
-    if (!empty($this->content->button_text) && !empty($this->content->button_link)) {
-      $this->content->text .= '
-      <div class="row">
-      <div class="col-lg-10 offset-lg-1 text-center">
-        <div class="courses_all_btn text-center">
-          <a class="btn btn-transparent" data-ccn="button_text" href="' . format_text($this->content->button_link, FORMAT_HTML, array('filter' => true)) . '">' . format_text($this->content->button_text, FORMAT_HTML, array('filter' => true)) . '</a>
-        </div>
-      </div></div>';
-    }
-    $this->content->text .= "
-\t\t</div>
-\t</section>
-";
-    return $this->content;
-  }
-
-  function applicable_formats()
-  {
-    $ccnBlockHandler = new ccnBlockHandler();
-    return $ccnBlockHandler->ccnGetBlockApplicability(array('all'));
-  }
-
-  public function html_attributes()
-  {
-    global $CFG;
-    $attributes = parent::html_attributes();
-    include ($CFG->dirroot . '/theme/evagu/ccn/block_handler/attributes.php');
-    return $attributes;
-  }
-
-  public function instance_allow_multiple()
-  {
-    return true;
-  }
-
-  public function has_config()
-  {
-    return false;
-  }
-
-  public function cron()
-  {
-    return true;
-  }
 }
